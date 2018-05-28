@@ -7,7 +7,7 @@ class FruitMachine extends React.Component {
 
   constructor(props) {
     super(props);
-    this.options = [...'🍌🍇🍒🍑🍓🍉'];
+    this.options = [...'🍌🍇🍒🍑🍓🍉🥑🍋'];
     this.slots = 3;
     this.timerIds = [];
 
