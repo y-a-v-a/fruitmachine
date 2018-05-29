@@ -1,13 +1,13 @@
 {
   "name": "fruitmachine",
   "version": "1.0.0",
-  "description": "",
+  "description": "Fruit machine in ReactJS",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "./node_modules/.bin/webpack-cli"
   },
-  "author": "",
+  "author": "Vincent Bruijn <vebruijn@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "react": "^16.4.0",
