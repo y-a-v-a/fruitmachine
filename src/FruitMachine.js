@@ -16,76 +16,84 @@ class FruitMachine extends React.Component {
     this.state = {
       isRunning: false,
       count: 10,
-      slotValues: [...'🍒'.repeat(this.slots)],
-      result: []
+      slotValues: [...'🍒'.repeat(this.slots)]
     }
   }
 
   clickHandler(event) {
-    if (this.state.isRunning || this.state.count <= 0) {
+    const {isRunning, count} = this.state;
+    if (isRunning || count <= 0) {
       return;
     }
 
-    this.setState(prevState => ({
-      isRunning: !prevState.isRunning,
-      count: (prevState.count - 1),
-      result: []
+    this.setState(state => ({
+      isRunning: !state.isRunning,
+      count: (state.count - 1)
     }));
 
+    let promises = [];
     for (let i = 0; i < this.slots; i++) {
-      this.runner(~~(Math.random() * 10) + 20, i);
+      promises.push(this.runnerPromise(i));
     }
+
+    Promise.all(promises).then(result => {
+      let score = this.defineScore(result);
+
+      this.setState(state => ({
+        isRunning: false,
+        count: state.count + score
+      }));
+    });
   }
 
-  runner(runs, i) {
-    if (runs === 0) {
-      clearTimeout(this.timerIds[i]);
-      this.setState(prevState => {
-        prevState.result.push(prevState.slotValues[i]);
-        if (prevState.result.length === 3) {
-          prevState.count = prevState.count + this.defineScore([].concat(prevState.result));
-          prevState.isRunning = false;
+  runnerPromise(id) {
+    let timerId;
+    let newSlotValue;
+
+    return new Promise((resolve, reject) => {
+      let runs = ~~(Math.random() * 10) + 20;
+
+      const runner = runs => {
+        if (runs === 0) {
+          clearTimeout(timerId);
+          return resolve(newSlotValue);
         }
-        return prevState;
-      });
-      return;
-    }
-    let newRuns = runs - 1;
+        let newRuns = runs - 1;
+        newSlotValue = this.options[~~(Math.random() * this.options.length)];
 
-    let newSlotValue = this.options[~~(Math.random() * this.options.length)];
+        this.setState(state => {
+          state.slotValues[id] = newSlotValue;
+          return state;
+        });
 
-    this.setState(prevState => {
-      prevState.slotValues[i] = newSlotValue;
-      return prevState;
+        timerId = setTimeout(runner, (800 / runs), newRuns);
+      };
+
+      runner(runs);
     });
-
-    this.timerIds[i] = setTimeout(this.runner.bind(this, newRuns, i), 800 / runs);
   }
 
   defineScore(result) {
-    const score = result.reduce((acc, el, arr) => {
+    const score = result.reduce((acc, el) => {
       return acc.indexOf(el) > -1 ? acc : acc.push(el), acc;
     }, []);
 
     switch(score.length) {
       case 1:
         return 5;
-        break;
       case 2:
         return 2;
-        break;
       default:
         return 0;
-        break;
     }
   }
 
   render() {
-    const count = this.state.count;
+    const {count, slotValues} = this.state;
 
     return (
       <div className="game">
-        <Slots slotValues={this.state.slotValues} />
+        <Slots slotValues={slotValues} />
         <div className="controls">
           <Credit count={count} />
           <Button clickHandler={this.clickHandler} />
