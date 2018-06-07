@@ -136,7 +136,7 @@ class FruitMachine extends React.Component {
         return state;
       });
     }
-    if (!score && potentialScore) {
+    if (potentialScore) {
       this.setState(state => {
         state.score = state.score + state.potentialScore;
         state.potentialScore = 0;
