@@ -2,6 +2,7 @@ import React from 'react';
 import Credit from './Credit';
 import Button from './Button';
 import Slots from './Slots';
+import Score from './Score';
 
 class FruitMachine extends React.Component {
 
@@ -12,28 +13,43 @@ class FruitMachine extends React.Component {
     this.timerIds = [];
 
     this.clickHandler = this.clickHandler.bind(this);
+    this.clickHandlerScore = this.clickHandlerScore.bind(this);
+    this.clickHandlerLock = this.clickHandlerLock.bind(this);
 
     this.state = {
       isRunning: false,
-      count: 10,
-      slotValues: [...'🍒'.repeat(this.slots)]
+      credit: 10,
+      score: 0,
+      slots: this.initiateSlotValues(this.slots),
+      totalLocked: 0
     }
   }
 
+  initiateSlotValues(amount) {
+    let slots = {};
+    for (let i = 0; i < amount; i++) {
+      slots[`slot${i}`] = {
+        value: '🍒',
+        isLocked: false
+      };
+    }
+    return slots;
+  }
+
   clickHandler(event) {
-    const {isRunning, count} = this.state;
-    if (isRunning || count <= 0) {
+    const {isRunning, credit} = this.state;
+    if (isRunning || credit <= 0) {
       return;
     }
 
     this.setState(state => ({
-      isRunning: !state.isRunning,
-      count: (state.count - 1)
+      isRunning: true,
+      credit: (state.credit - 1)
     }));
 
     let promises = [];
     for (let i = 0; i < this.slots; i++) {
-      promises.push(this.runnerPromise(i));
+      promises.push(this.runnerPromise(`slot${i}`));
     }
 
     Promise.all(promises).then(result => {
@@ -41,7 +57,7 @@ class FruitMachine extends React.Component {
 
       this.setState(state => ({
         isRunning: false,
-        count: state.count + score
+        lastResult: score
       }));
     });
   }
@@ -49,6 +65,10 @@ class FruitMachine extends React.Component {
   runnerPromise(id) {
     let timerId;
     let newSlotValue;
+
+    // if (this.state.totalLocked && this.state.locks.indexOf(`${id}`) > -1) {
+    //   return Promise.resolve(this.state.slotValues[id]);
+    // }
 
     return new Promise((resolve, reject) => {
       let runs = ~~(Math.random() * 10) + 20;
@@ -62,7 +82,7 @@ class FruitMachine extends React.Component {
         newSlotValue = this.options[~~(Math.random() * this.options.length)];
 
         this.setState(state => {
-          state.slotValues[id] = newSlotValue;
+          state.slots[id].value = newSlotValue;
           return state;
         });
 
@@ -88,15 +108,52 @@ class FruitMachine extends React.Component {
     }
   }
 
+  /**
+   * Monetize the score into credits
+   * @param {Object} event Event object
+   */
+  clickHandlerScore(event) {
+    const {score, credit} = this.state;
+
+    if (score) {
+      this.setState(state => {
+        state.credit = Math.round(score / 2) + credit;
+        state.score = 0;
+        return state;
+      });
+    }
+  }
+
+  /**
+   * Handle a click on a slot and toggle isLocked
+   * @param {string} index Index of slot like slot1, slot2, etc
+   */
+  clickHandlerLock(index) {
+    if (this.state.isRunning || this.state.totalLocked > this.slots - 1) {
+      return;
+    }
+
+    this.setState(state => {
+      const slot = state.slots[index];
+      slot.isLocked = !slot.isLocked;
+      state.totalLocked = state.totalLocked + (slot.isLocked ? 1 : -1);
+      return state;
+    });
+  }
+
   render() {
-    const {count, slotValues} = this.state;
+    const {credit, slots, score} = this.state;
 
     return (
       <div className="game">
-        <Slots slotValues={slotValues} />
+        <Slots slots={slots} clickHandler={this.clickHandlerLock} />
         <div className="controls">
-          <Credit count={count} />
-          <Button clickHandler={this.clickHandler} />
+          <Credit credit={credit} />
+          <Button clickHandler={this.clickHandler} label="🔴" />
+        </div>
+        <div className="controls">
+          <Score score={score} />
+          <Button clickHandler={this.clickHandlerScore} label="💸" />
         </div>
       </div>
     )

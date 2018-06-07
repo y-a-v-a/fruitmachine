@@ -5,9 +5,11 @@ class Slots extends React.Component {
 
   render() {
     const slots = [];
-    for (let i = 0; i < this.props.slotValues.length; i++) {
-      let item = this.props.slotValues[i];
-      slots.push(<Slot item={item} key={i} />);
+    const slotsKeys = Object.keys(this.props.slots);
+    for (let i = 0; i < slotsKeys.length; i++) {
+      const id = slotsKeys[i];
+      const item = this.props.slots[id];
+      slots.push(<Slot item={item} key={i} index={id} clickHandler={this.props.clickHandler} />);
     }
 
     return (
