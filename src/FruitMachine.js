@@ -7,7 +7,11 @@ class FruitMachine extends React.Component {
 
   constructor(props) {
     super(props);
-    this.options = [...'🍌🍇🍒🍑🍓🍉🥑🍋'];
+    this.reels = [
+      [...'🏆🍇🍊🍇🍊🍇🍊🍇🎰🍒🍊🛎🍊🍓🎰🍊📯🍇'],
+      [...'🏆🛎📯🛎🍒🍊🍇🍒🛎📯🛎🍓🍇🎰🛎📯🛎🍓'],
+      [...'🏆🍒🍊📯🍊🥑🍊🍇🍊🍇🍊🍇🛎🍓🎰🛎🍒🥑']
+    ];
     this.slots = 3;
     this.timerIds = [];
 
@@ -15,7 +19,7 @@ class FruitMachine extends React.Component {
 
     this.state = {
       isRunning: false,
-      count: 10,
+      count: 20,
       slotValues: [...'🍒'.repeat(this.slots)]
     }
   }
@@ -37,7 +41,7 @@ class FruitMachine extends React.Component {
     }
 
     Promise.all(promises).then(result => {
-      let score = this.defineScore(result);
+      let score = this.defineScoreVariant(result);
 
       this.setState(state => ({
         isRunning: false,
@@ -59,7 +63,7 @@ class FruitMachine extends React.Component {
           return resolve(newSlotValue);
         }
         let newRuns = runs - 1;
-        newSlotValue = this.options[~~(Math.random() * this.options.length)];
+        newSlotValue = this.reels[id][~~(Math.random() * this.reels[id].length)];
 
         this.setState(state => {
           state.slotValues[id] = newSlotValue;
@@ -71,6 +75,39 @@ class FruitMachine extends React.Component {
 
       runner(runs);
     });
+  }
+
+  defineScoreVariant(result) {
+    const res = result.join('');
+    let score = 0;
+
+    switch(true) {
+      case (res === '🏆🏆🏆'):
+      score = 32;
+      break;
+      case (res === '🎰🎰🎰'):
+      case (res === '🛎🛎🛎'):
+      score = 16;
+      break;
+      case /(.)\1\1/u.test(res): // any other combo of 3
+      score = 8;
+      break;
+      case /(📯|🎰|🍒|🍓)\1|(📯|🎰|🍒|🍓).+?\2/u.test(res): // combo of 2 of 📯, 🎰, 🍒, 🍓
+      score = 4;
+      break;
+      case /(🛎|🍇)\1|(🛎|🍇).+?\2/u.test(res): // combo of 2 of 🛎, 🍇
+      score = 2;
+      break;
+      case /(🍊)\1|(🍊).+?\2/u.test(res): // combo of 2 of 🍊
+      case /🎰/u.test(res): // any 1 🎰
+      score = 1;
+      break;
+      default:
+      score = 0;
+      break;
+    }
+    console.log(res, score);
+    return score;
   }
 
   defineScore(result) {
