@@ -20,7 +20,8 @@ class FruitMachine extends React.Component {
     this.state = {
       isRunning: false,
       count: 20,
-      slotValues: [...'🍒'.repeat(this.slots)]
+      slotValues: [...'🍒'.repeat(this.slots)],
+      timings: []
     }
   }
 
@@ -57,7 +58,7 @@ class FruitMachine extends React.Component {
     return new Promise((resolve, reject) => {
       let runs = ~~(Math.random() * 10) + 20;
 
-      const runner = runs => {
+      const runner = (runs, timing) => {
         if (runs === 0) {
           clearTimeout(timerId);
           return resolve(newSlotValue);
@@ -67,13 +68,15 @@ class FruitMachine extends React.Component {
 
         this.setState(state => {
           state.slotValues[id] = newSlotValue;
+          state.timings[id] = timing;
           return state;
         });
 
-        timerId = setTimeout(runner, (800 / runs), newRuns);
+        const newTiming = (800 / runs);
+        timerId = setTimeout(runner, newTiming, newRuns, newTiming);
       };
 
-      runner(runs);
+      runner(runs, (800 / runs));
     });
   }
 
@@ -126,11 +129,11 @@ class FruitMachine extends React.Component {
   }
 
   render() {
-    const {count, slotValues} = this.state;
+    const {count, slotValues, timings} = this.state;
 
     return (
       <div className="game">
-        <Slots slotValues={slotValues} />
+        <Slots slotValues={slotValues} timings={timings}/>
         <div className="controls">
           <Credit count={count} />
           <Button clickHandler={this.clickHandler} />

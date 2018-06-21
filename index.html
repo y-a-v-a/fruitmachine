@@ -35,6 +35,29 @@
       display: flex;
       justify-content: space-around;
     }
+    .slot {
+      position: relative;
+      overflow: hidden;
+    }
+    .slot, .slot span {
+      display: inline-block;
+    }
+    .slot-enter {
+      transition: .05s linear;
+      transform: translateY(100%);
+    }
+    .slot-enter-active {
+      transform: translateY(0);
+    }
+    .slot-exit {
+      transition: .05s linear;
+      transform: translateY(0);
+      position: absolute;
+      left: 0;
+    }
+    .slot-exit-active {
+      transform: translateY(-100%);
+    }
   </style>
 </head>
 <body>

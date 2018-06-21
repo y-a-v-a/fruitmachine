@@ -7,7 +7,8 @@ class Slots extends React.Component {
     const slots = [];
     for (let i = 0; i < this.props.slotValues.length; i++) {
       let item = this.props.slotValues[i];
-      slots.push(<Slot item={item} key={i} />);
+      let timing = this.props.timings[i];
+      slots.push(<Slot item={item} key={i} index={i} timing={timing}/>);
     }
 
     return (
